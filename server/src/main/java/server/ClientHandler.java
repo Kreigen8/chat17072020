@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.sql.SQLException;
 
 public class ClientHandler {
     Server server;
@@ -24,7 +25,7 @@ public class ClientHandler {
 
             new Thread(() -> {
                 try {
-                    socket.setSoTimeout(5000);
+                    socket.setSoTimeout(120000);
 
                     //цикл аутентификации
                     while (true) {
@@ -98,6 +99,8 @@ public class ClientHandler {
                     sendMsg("/end");
                 }catch (IOException e) {
                     e.printStackTrace();
+                } catch (SQLException throwables) {
+                    throwables.printStackTrace();
                 } finally {
                     System.out.println("Клиент отключился");
                     server.unsubscribe(this);

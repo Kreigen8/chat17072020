@@ -5,16 +5,47 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
 import java.util.Vector;
+import java.sql.*;
 
 public class Server {
     private List<ClientHandler> clients;
     private AuthService authService;
+    static Connection connection;
+    static Statement stmt;
+    static PreparedStatement psInsert;
+
+    public static void connectDB() throws ClassNotFoundException, SQLException {
+        Class.forName("org.sqlite.JDBC");
+        connection = DriverManager.getConnection("jdbc:sqlite:accounts.db");
+        stmt = connection.createStatement();
+    }
+
+    public static void disconnectDB() {
+        try {
+            stmt.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     public AuthService getAuthService() {
         return authService;
     }
 
-    public Server() {
+    public Server() throws SQLException {
+        try {
+            connectDB();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
         clients = new Vector<>();
         authService = new SimpleAuthService();
 
@@ -27,6 +58,7 @@ public class Server {
             server = new ServerSocket(PORT);
             System.out.println("Сервер запущен!");
 
+
             while (true) {
                 socket = server.accept();
                 System.out.println("Клиент подключился");
@@ -38,6 +70,7 @@ public class Server {
             e.printStackTrace();
         } finally {
             try {
+                disconnectDB();
                 server.close();
             } catch (IOException e) {
                 e.printStackTrace();
